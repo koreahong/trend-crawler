@@ -44,8 +44,9 @@ parser.add_argument(
     required=True,
     help="탐색 연령대 입력,(1:10대/2:20,30대/3:40,50,60대/), 형식 : integer",
 )
-parser.add_argument("--start_date", "-e", required=True, help="시작일자를 입력받습니다. ex) 20211208")
-parser.add_argument("--end_date", "-s", required=True, help="종료일자를 입력받습니다. ex) 20211208")
+
+parser.add_argument("--start_date", "-s", required=True, help="시작일자를 입력받습니다. ex) 20211208")
+parser.add_argument("--end_date", "-e", required=True, help="종료일자를 입력받습니다. ex) 20211208")
 
 parser.add_argument(
     "--gender",
