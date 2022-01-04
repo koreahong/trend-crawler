@@ -1,7 +1,26 @@
 # 트렌드 분석을 위한 크롤러
-## 크롤러 파일 구성
+## 크롤러 디렉토리 구조
 ```
-category_lv3 : 네이버 쇼핑 기준 카테고리 확인 및 대조를 위한 카테고리 파일
+├── README.md
+├── crawler
+│   ├── crawling_keyword.py
+│   └── keyword_goods.py
+├── results
+├── src
+│   ├── category_lv2_업데이트.xlsx
+│   ├── category_lv3.xlsx
+│   ├── chromedriver
+│   └── naver_goods_cat.csv
+├── temp
+│   ├── crawling.py
+│   └── notebooks
+│       ├── crawler_best100.ipynb
+│       ├── crawler_homemoa.ipynb
+│       └── crawler_keyword100.ipynb
+└── utils
+    ├── categorizing.py
+    ├── categorizing_keyword.py
+    └── to_db.py
 ```
 ---
 ## 네이버 베스트 상품
