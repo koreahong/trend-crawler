@@ -2,32 +2,32 @@
 ## 크롤러 디렉토리 구조
 ```
 ├── README.md
-├── conf
+├── conf                                            : 설정 파일, 접속정보 등 configuration 파일 저장 경로
 │   └── sample.yml
-├── crawler
+├── crawler                                         : 크롤러 저장 경로
 │   ├── crawling_keyword.py
 │   └── keyword_goods.py
-├── results
+├── results                                         : 크롤링 결과 저장 경로(차후 S3로 이관 예정)
 │   ├── bestprd_data
 │   │   └── sample.csv
 │   ├── hommoa_data
 │   │   └── sample.csv
 │   └── keyword_data
 │       └── sample.csv
-├── src
+├── src                                             : 크롤링을 위한 사전 파일, 드라이버 등의 저장 경로
 │   ├── crawler_base
 │   │   ├── category_lv2_업데이트.xlsx
 │   │   ├── category_lv3.xlsx
 │   │   └── naver_goods_cat.csv
 │   └── driver
 │       └── chromedriver
-├── temp
+├── temp                                            : 임시 저장 경로
 │   ├── crawling.py
 │   └── notebooks
 │       ├── crawler_best100.ipynb
 │       ├── crawler_homemoa.ipynb
 │       └── crawler_keyword100.ipynb
-└── utils
+└── utils                                           : 크롤러에서 공통적으로 사용하는 스크립트 저장 경로
     ├── categorizing.py
     ├── categorizing_keyword.py
     └── to_db.py
