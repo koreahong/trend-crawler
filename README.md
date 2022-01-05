@@ -2,15 +2,25 @@
 ## 크롤러 디렉토리 구조
 ```
 ├── README.md
+├── conf
+│   └── sample.yml
 ├── crawler
 │   ├── crawling_keyword.py
 │   └── keyword_goods.py
 ├── results
+│   ├── bestprd_data
+│   │   └── sample.csv
+│   ├── hommoa_data
+│   │   └── sample.csv
+│   └── keyword_data
+│       └── sample.csv
 ├── src
-│   ├── category_lv2_업데이트.xlsx
-│   ├── category_lv3.xlsx
-│   ├── chromedriver
-│   └── naver_goods_cat.csv
+│   ├── crawler_base
+│   │   ├── category_lv2_업데이트.xlsx
+│   │   ├── category_lv3.xlsx
+│   │   └── naver_goods_cat.csv
+│   └── driver
+│       └── chromedriver
 ├── temp
 │   ├── crawling.py
 │   └── notebooks
