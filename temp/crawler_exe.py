@@ -5,6 +5,8 @@ import concurrent.futures
 import pandas as pd
 from tqdm import tqdm
 import time
+import argparse
+
 
 def do_crawling(row: object) -> None:
     """
@@ -13,7 +15,10 @@ def do_crawling(row: object) -> None:
     :return: None
     """
     os.system(
-        f"python crawler/category_big.py -s {row[1][0]} -e {row[1][1]} -d {row[1][2]} -g {row[1][3]} -a {row[1][4]}"
+        f"python crawler/category_big.py "
+        + f"-mg {row[1].mgmt_lv} "
+        + f"-s {row[1].start_dt} -e {row[1].end_dt} "
+        + f"-d {row[1].device} -g {row[1].gender} -a {row[1].age}"
     )
 
 
@@ -40,30 +45,56 @@ def do_thread_crawl(row: object) -> None:
 
 
 if __name__ == "__main__":
-    __file__ = './temp/crawler_exe.py'
+
+    __file__ = "./temp/crawler_exe.py"
+
+    parser = argparse.ArgumentParser(description="Command-line에서 카테고리레벨")
+
+    parser.add_argument("--mgmt_lv", "-mg",
+                        required=True,
+                        help="mgmt_lv - 카테고리 대 or 중")
+
+    args = parser.parse_args()
+
     start_dt = pd.DataFrame(
-        [d.strftime("%Y%m%d") for d in pd.date_range("20210219", "20210531")],
+        [d.strftime("%Y%m%d") for d in pd.date_range("20220101", "20220101")],
         columns=["start_dt"],
     )
     end_dt = pd.DataFrame(
-        [d.strftime("%Y%m%d") for d in pd.date_range("20210219", "20210531")],
+        [d.strftime("%Y%m%d") for d in pd.date_range("20220101", "20220101")],
         columns=["end_dt"],
     )
 
     device = pd.DataFrame(["1_2"], columns=["device"])
-    gender = pd.DataFrame(["1", "2", "1_2"], columns=["gender"])
-    age = pd.DataFrame(["1", "2", "3", "4", "5", "6"], columns=["age"])
+    gender = pd.DataFrame(["1"], columns=["gender"])
+    age = pd.DataFrame(["1"], columns=["age"])
 
     df = pd.concat([start_dt, end_dt], axis=1)
     df = pd.merge(
-        df, pd.merge(device, pd.merge(gender, age, how="cross"), how="cross"), how="cross"
+        df,
+        pd.merge(device, pd.merge(gender, age, how="cross"), how="cross"),
+        how="cross",
     )
+
+    df["mgmt_lv"] = args.mgmt_lv
     start_time = time.time()
 
     total = len(df)
-    pool = Pool(5)
+    pool = Pool(3)
+
     with tqdm(total=total) as pbar:
         for _ in tqdm(pool.map(do_process_with_thread_crawl, df.iterrows())):
             pbar.update()
 
     print(f"총소요 시간: {time.time() - start_time}")
+
+
+
+
+
+
+
+
+
+
+

@@ -56,11 +56,13 @@ import datetime
 # )
 #
 # args = parser.parse_args()
-
+#
 # age = int(args.age)
 # gender = int(args.gender)
 # start_date = str(args.start_date)
 # end_date = str(args.end_date)
+
+mgmt_id = 2
 
 device = "1_2"
 device_list = [0, 0, 0]

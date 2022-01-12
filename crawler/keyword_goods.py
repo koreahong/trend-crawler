@@ -10,7 +10,7 @@ from selenium import webdriver
 from tqdm import tqdm
 from pyvirtualdisplay import Display
 
-category_lv2 = pd.read_excel('/var/lib/airflow/workspace/tony/category_lv3.xlsx')
+category_lv2 = pd.read_excel('/category_lv3.xlsx')
 
 #카테고리 중 Y로 되어있는 항목 수집
 category_lv2=category_lv2[category_lv2['YN']=='Y'].reset_index(drop=True)
