@@ -87,14 +87,3 @@ if __name__ == "__main__":
             pbar.update()
 
     print(f"총소요 시간: {time.time() - start_time}")
-
-
-
-
-
-
-
-
-
-
-
