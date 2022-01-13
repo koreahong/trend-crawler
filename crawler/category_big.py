@@ -12,6 +12,7 @@ import pandas as pd
 from tqdm import tqdm
 import argparse
 import datetime
+import collections
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -27,17 +28,16 @@ def set_chrome_driver():
     return driver
 
 
+year_dict = collections.defaultdict(int)
+for idx, year in enumerate(range(2017, 2030), start=1):
+    year_dict[str(year)] = idx
+
 # 금일 출력
-today_dt = datetime.datetime.now().strftime("%Y%m%d")
+today_dt = datetime.datetime.now()
+today_dt = today_dt.strftime("%Y%m%d")
 
-parser = argparse.ArgumentParser(description="Command-line에서 카테고리레벨, 시작일자, 종료일자, 디바이스, 성별, 연령, 날짜 반환")
 
-parser.add_argument(
-    "--mgmt_lv",
-    "-mg",
-    required=True,
-    help="mgmt_lv - 카테고리 대 or 중"
-)
+parser = argparse.ArgumentParser(description="Command-line에서 디바이스, 성별, 연령, 날짜 반환")
 
 parser.add_argument(
     "--start_dt",
@@ -81,15 +81,8 @@ end_dt = args.end_dt
 device = args.device
 age = args.age
 gender = args.gender
-mgmt_lv = args.mgmt_lv
 
-cate_list = pd.read_excel("./src/crawler_base/category_lv3.xlsx")
-if mgmt_lv == '2':
-    category_lv2 = cate_list[['category_1', 'category_1nm', 'lv1_num', 'category_2', 'category_2nm', 'lv2_num']]
-else:
-    category_lv2 = cate_list[['category_1', 'category_1nm', 'lv1_num']].drop_duplicates('category_1', keep='first')
-
-print("시작일 : ", end_dt, " / 종료일 : ", start_dt , " ------ 시작")
+print("시작일 : ", start_dt, " / 종료일 : ",  end_dt, " ------ 시작")
 
 # 연령대 파라미터가 10_20일 경우 [0,1,1,0,0,0,0]으로 변환
 for var_name in ['device_lst', 'gender_lst', 'age_lst']:
@@ -98,11 +91,16 @@ for var_name in ['device_lst', 'gender_lst', 'age_lst']:
         globals()[f'{var_name}'][int(search_detail_idx) % 10] += 1
 
 
+cate_list = pd.read_excel("./src/crawler_base/category_lv3.xlsx")
+category_lv2 = cate_list[['category_1', 'category_1nm', 'lv1_num']].drop_duplicates('category_1', keep='first')
+
 keyword_df = pd.DataFrame()
 
 driver = set_chrome_driver()
 url = "https://datalab.naver.com/shoppingInsight/sCategory.naver"
 driver.get(url)
+
+DOING = True
 
 try:
     element = WebDriverWait(driver, 100).until(
@@ -133,93 +131,172 @@ for idx, bool_ in enumerate(age_lst):
                                      + '"]').click()
 
 
+
+
 # 시작, 끝 년도 위치 잡기
 # 시작기준 2017 -> 1, 2022 -> 6
-start_year_xpath_num = (int(datetime.datetime.now().year) - 2017 + 1) + (int(start_dt[:4]) - int(datetime.datetime.now().year))
-end_year_xpath_num = int(datetime.datetime.now().year) - int(start_dt[:4])
+# start_year_xpath_num = (int(datetime.datetime.now().year) - 2017 + 1) + (int(start_dt[:4]) - int(datetime.datetime.now().year))
+# end_year_xpath_num = int(datetime.datetime.now().year) - int(start_dt[:4])
 
-print(start_year_xpath_num, end_year_xpath_num)
 error_list = []
 try:
     # 1: 시작기간, 3: 종료시간
-    if end_year_xpath_num <= 1:
-        date_search_comb = zip([3, 1], [end_year_xpath_num, start_year_xpath_num], [end_dt, start_dt])
+    start_order = 1
+    end_order = 3
+
+    # order1 - 검색시작 연도를 끝시작 연도에 맞춘다
+    # 연 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[1]/span'
+    ).click()
+
+    # 연 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[1]/ul/li['
+        + str(year_dict[end_dt[:4]])
+        + ']/a'
+    ).click()
+    # time.sleep(0.5)
+
+
+    # 월 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[2]/span'
+    ).click()
+    # time.sleep(0.5)
+
+    # 월 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[2]/ul/li['
+        + str(1)
+        + "]/a"
+    ).click()
+    # time.sleep(0.5)
+
+    # 일 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[3]/span'
+    ).click()
+    # time.sleep(0.5)
+
+    # 일 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(start_order)
+        + ']/div[3]/ul/li['
+        + str(1)
+        + "]/a"
+    ).click()
+
+    # order2 - 끝시간 맞추기
+    # 연 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[1]/span'
+    ).click()
+
+    # 연 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[1]/ul/li/a'
+    ).click()
+    # time.sleep(0.5)
+
+    # 월 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[2]/span'
+    ).click()
+    # time.sleep(0.5)
+
+    # 월 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[2]/ul/li['
+        + str(int(end_dt[4:6]))
+        + "]/a"
+    ).click()
+    # time.sleep(0.5)
+
+    # 일 - 체크박스 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[3]/span'
+    ).click()
+    # time.sleep(0.5)
+
+    # 일 - 세부사항 클릭
+    driver.find_element_by_xpath(
+        '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+        + str(end_order)
+        + ']/div[3]/ul/li['
+        + str(int(end_dt[6:]))
+        + "]/a"
+    ).click()
+
+    # order3 - 시작시간 맞추기
+    if end_dt[:4] == '2017':
+        pass
     else:
-        date_search_comb = zip([1, 3], [start_year_xpath_num, end_year_xpath_num], [start_dt, end_dt])
-
-    for xpath_order, year_xpath_num, date in date_search_comb:
-
-        if xpath_order == 3:
-            # 종료기간 설정
-            # 1년
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[1]/span/label[3]'
-            ).click()
-
-            # 일 - 체크박스 클릭
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-                + '1'
-                + ']/div[3]/span'
-            ).click()
-            # time.sleep(0.5)
-
-            # 일 - 세부사항 클릭
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-                + '1'
-                + ']/div[3]/ul/li['
-                + '1'
-                + "]/a"
-            ).click()
-
         # 연 - 체크박스 클릭
         driver.find_element_by_xpath(
             '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-            + str(xpath_order)
+            + str(start_order)
             + ']/div[1]/span'
         ).click()
 
         # 연 - 세부사항 클릭
         driver.find_element_by_xpath(
             '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-            + str(xpath_order)
+            + str(start_order)
             + ']/div[1]/ul/li['
-            + str(year_xpath_num)
-            + ']/a'
+            + str(year_dict[start_dt[:4]])
+            + "]/a"
         ).click()
+        # time.sleep(0.5)
 
+    if end_dt[4:6] == '01':
+        pass
+    else:
         # 월 - 체크박스 클릭
         driver.find_element_by_xpath(
             '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-            + str(xpath_order)
+            + str(start_order)
             + ']/div[2]/span'
         ).click()
         # time.sleep(0.5)
 
-        if int(date[4:6]) != 0:
-            # 월 - 세부사항 클릭
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-                + str(xpath_order)
-                + ']/div[2]/ul/li['
-                + str(int(date[4:6]))
-                + "]/a"
-            ).click()
-            # time.sleep(0.5)
-        else:
-            # 월 - 세부사항 클릭
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-                + str(xpath_order)
-                + ']/div[2]/ul/li/a'
-            ).click()
-            # time.sleep(0.5)
+        # 월 - 세부사항 클릭
+        driver.find_element_by_xpath(
+            '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
+            + str(start_order)
+            + ']/div[2]/ul/li['
+            + str(int(start_dt[4:6]))
+            + "]/a"
+        ).click()
 
+    if end_dt[6:] == '01':
+        pass
+    else:
         # 일 - 체크박스 클릭
         driver.find_element_by_xpath(
             '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-            + str(xpath_order)
+            + str(start_order)
             + ']/div[3]/span'
         ).click()
         # time.sleep(0.5)
@@ -227,15 +304,17 @@ try:
         # 일 - 세부사항 클릭
         driver.find_element_by_xpath(
             '//*[@id="content"]/div[2]/div/div[1]/div/div/div[2]/div[2]/span['
-            + str(xpath_order)
+            + str(start_order)
             + ']/div[3]/ul/li['
-            + str(int(date[6:]))
+            + str(int(start_dt[6:]))
             + "]/a"
         ).click()
+        # end_dt 설정 -------------------------
+
 
     for j, cat2_row in category_lv2.iterrows():
         time.sleep(0.5)
-        mgmt_lv1_id = cat2_row["mgmt_lv1_id"]
+        lv1_num = cat2_row["lv1_num"]
 
         # 카테고리 설정
         driver.find_element_by_xpath(
@@ -248,19 +327,6 @@ try:
             + "]/a"
         ).click()  # 세부카테고리 선택
         time.sleep(0.2)
-
-        # 중분류 일경우 진행
-        if mgmt_lv == '2':
-            mgmt_lv2_id = cat2_row["mgmt_lv2_id"]
-            # 카테고리 레벨 2 선택
-            driver.find_element_by_xpath(
-                '//*[@id="content"]/div[2]/div/div[1]/div/div/div[1]/div/div[2]/span'
-            ).click()
-            driver.find_element_by_xpath(
-                    '//*[@id="content"]/div[2]/div/div[1]/div/div/div[1]/div/div[2]/ul/li['
-                    + str(mgmt_lv2_id)
-                    + "]/a"
-            ).click()
 
         # 조회하기 클릭
         driver.find_element_by_xpath('//*[@id="content"]/div[2]/div/div[1]/div/a').click()
@@ -341,35 +407,20 @@ try:
             "category_1nm"
         ]
 
+        df = pd.DataFrame()
         df = pd.DataFrame(
             list(map((lambda x: x.split("\n")), keyword_list)), columns=["순위", "인기검색어"]
         )
 
+        # time.sleep(0.3)
+
         df["category_1nm"] = category_1nm
         df["category_1"] = cat2_row.category_1
-
-        if mgmt_lv == '2':
-            if category not in list(
-                    category_lv2["category_2nm"]
-            ):  # 간혹 네이버의 카테고리와 우리의 카테고리 리스트가 안 맞는 경우 존재-> 우리가 설정한 카테고리 리스트에 없는 카테고리면 skip...ex)블루레이
-                print(category, "not in list")
-                continue
-
-            catid = category_lv2[
-                (category_lv2.lv1_num == lv1_num) & (category_lv2.lv2_num == lv2_num)
-                ]["category_2"][j]
-
-            df["category_2"] = catid
-            df["category_2nm"] = category
-
-        else:
-            df["category_2"] = None
-            df["category_2nm"] = None
+        # time.sleep(0.3)
 
         keyword_df = keyword_df.append(df)
-        print("시작일 : ", end_dt, " / 종료일 : ", start_dt, " --- ", category_1nm, " ------ 완료\n")
+        print("시작일 : ", start_dt, " / 종료일 : ",  end_dt, " --- ", category_1nm, " ------ 완료\n")
         time.sleep(2)
-
     # 수집 완료 후 데이터 프레임 생성
     today_dt = datetime.datetime.now()
     today_dt = today_dt.strftime("%Y%m%d")
@@ -381,42 +432,41 @@ try:
     # 컬럼 이름 변경
     new.rename(
         columns={
-            "인기검색어": "kw_nm",
-            "순위": "kw_rk",
+            "인기검색어": "keyword_nm",
+            "순위": "keyword_rk",
             "category_1": "ctgr_lclas_id",
             "category_1nm": "ctgr_lcalas_nm",
-            "category_2": "ctgr_mclas_id",
-            "category_2nm": "ctgr_mcalas_nm",
-            "lv1_num": "mgmt_lv1_id",
-            "lv2_num": "mgmt_lv2_id",
+            "lv1_num": "lv1_num",
         },
         inplace=True,
     )
 
-    new['reg_dt'] = today_dt
-    new['strt_dt'] = start_dt
+    new['start_dt'] = start_dt
     new['end_dt'] = end_dt
-    new['device_id'] = device
-    new['age_id'] = age
-    new['gender_id'] = gender
+    new['register_dt'] = today_dt
+    new['device'] = device
+    new['age'] = age
+    new['gender'] = gender
 
     new.to_csv(
-        f"./data/category_lv1_result_{today_dt}+{mgmt_lv}+{start_dt}+{end_dt}+{device}+{gender}+{age}.csv",
+        f"./data/category_lv1_result_{today_dt}+{start_dt}+{end_dt}+{device}+{gender}+{age}.csv",
         encoding="utf-8-sig",
         index=False,
     )
-    # print(f"네이버키워드 TOP 100: {today_dt}+{mgmt_lv}+{start_dt}+{end_dt}+{device}+{gender}+{age} 저장완료\n")
+    print(f"./data/category_lv1_result_{today_dt}+{start_dt}+{end_dt}+{device}+{gender}+{age}.csv 저장완료\n")
 
     # 기존 CSV 내보내기
     keyword_df.to_csv(
-        f"./data/keyword_top100_{today_dt}+{mgmt_lv}+{start_dt}+{end_dt}+{device}+{gender}+{age}.csv",
+        f"./data/keyword_top100_{today_dt}+{start_dt}+{end_dt}+{device}+{gender}+{age}.csv",
         index=False,
         encoding="utf-8-sig",
     )
+    print(today_dt, ' / ', start_dt, "전처리 데이터 가공 및 csv 추출완료")
+    script_end = time.time()
+    print("시작일 : ", start_dt, " / 종료일 : ", end_dt , " ------ 종료\n")
 
-    print("시작일 : ", end_dt, " / 종료일 : ", start_dt, " ------ 종료\n")
 except:
-    print("시작일 : ", end_dt, " / 종료일 : ", start_dt, " ------ 오류\n")
-# finally:
-#
-#     driver.quit()
+    print("시작일 : ", start_dt, " / 종료일 : ", end_dt, " ------ 오류\n")
+
+finally:
+    driver.quit()
