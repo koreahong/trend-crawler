@@ -51,14 +51,3 @@ if __name__ == '__main__':
     with tqdm(total=total) as pbar:
         for _ in tqdm(pool.map(do_db_insert, csv_files)):
             pbar.update()
-
-
-
-
-
-
-
-
-
-
-
